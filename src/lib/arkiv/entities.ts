@@ -1,5 +1,5 @@
 import { ExpirationTime, jsonToPayload } from "@arkiv-network/sdk/utils";
-import { getWalletClient, getPublicClient } from "./client";
+import { getPublicClient } from "./client";
 import { PROJECT_ATTRIBUTE, CURRENT_COHORT } from "./constants";
 import type {
   ContributionPayload,
@@ -10,31 +10,33 @@ import type {
   BountyPayload,
 } from "@/types/entities";
 
+type WalletClient = Awaited<ReturnType<typeof import("./client").getPrivyWalletClient>>;
+
 function attrs(extra: { key: string; value: string | number }[]) {
   return [{ key: PROJECT_ATTRIBUTE.key, value: PROJECT_ATTRIBUTE.value }, ...extra];
 }
 
 export async function createContribution(
-  walletAddress: `0x${string}`,
+  walletClient: WalletClient,
   data: {
     pillar: string;
     category: string;
     points: number;
     cohort?: string;
     earnedAt?: number;
+    contributorWallet: `0x${string}`;
     payload: ContributionPayload;
   }
 ) {
-  const client = getWalletClient(walletAddress);
   const now = Date.now();
-  return client.createEntity({
+  return walletClient.createEntity({
     payload: jsonToPayload(data.payload),
     contentType: "application/json",
     attributes: attrs([
       { key: "type", value: "contribution" },
       { key: "pillar", value: data.pillar },
       { key: "category", value: data.category },
-      { key: "contributorWallet", value: walletAddress },
+      { key: "contributorWallet", value: data.contributorWallet },
       { key: "cohort", value: data.cohort ?? CURRENT_COHORT },
       { key: "status", value: "pending" },
       { key: "points", value: data.points },
@@ -42,34 +44,34 @@ export async function createContribution(
       { key: "earnedAt", value: data.earnedAt ?? now },
       { key: "createdAt", value: now },
     ]),
-    expiresIn: 0,
+    expiresIn: ExpirationTime.fromDays(36500),
   });
 }
 
 export async function updateContributionStatus(
   entityKey: `0x${string}`,
-  walletAddress: `0x${string}`,
+  walletClient: WalletClient,
   status: "validated" | "rejected",
   validationCount: number,
   currentPayload: ContributionPayload,
   currentAttrs: { key: string; value: string | number }[]
 ) {
-  const client = getWalletClient(walletAddress);
   const updatedAttrs = currentAttrs.map((a) => {
     if (a.key === "status") return { ...a, value: status };
     if (a.key === "validationCount") return { ...a, value: validationCount };
     return a;
   });
-  return client.updateEntity({
+  return walletClient.updateEntity({
     entityKey,
     payload: jsonToPayload(currentPayload),
     contentType: "application/json",
     attributes: updatedAttrs,
-    expiresIn: 0,
+    expiresIn: ExpirationTime.fromDays(36500),
   });
 }
 
 export async function createEndorsement(
+  walletClient: WalletClient,
   fromWallet: `0x${string}`,
   data: {
     toWallet: string;
@@ -79,9 +81,8 @@ export async function createEndorsement(
     payload: EndorsementPayload;
   }
 ) {
-  const client = getWalletClient(fromWallet);
   const now = Date.now();
-  return client.createEntity({
+  return walletClient.createEntity({
     payload: jsonToPayload(data.payload),
     contentType: "application/json",
     attributes: attrs([
@@ -98,19 +99,19 @@ export async function createEndorsement(
 }
 
 export async function createStreak(
+  walletClient: WalletClient,
   walletAddress: `0x${string}`,
   streakType: "daily_burn" | "daily_build" | "daily_learn" = "daily_burn",
   cohort: string = CURRENT_COHORT,
   location: string = "unknown"
 ) {
-  const client = getWalletClient(walletAddress);
   const now = Date.now();
   const todayStr = new Date().toISOString().split("T")[0];
   const payload: StreakPayload = {
     streakType,
     checkIns: [{ date: todayStr, timestamp: now, location }],
   };
-  return client.createEntity({
+  return walletClient.createEntity({
     payload: jsonToPayload(payload),
     contentType: "application/json",
     attributes: attrs([
@@ -129,6 +130,7 @@ export async function createStreak(
 
 export async function updateStreakCheckin(
   entityKey: `0x${string}`,
+  walletClient: WalletClient,
   walletAddress: `0x${string}`,
   currentCount: number,
   bestCount: number,
@@ -136,7 +138,6 @@ export async function updateStreakCheckin(
   currentAttrs: { key: string; value: string | number }[],
   location: string = "unknown"
 ) {
-  const client = getWalletClient(walletAddress);
   const now = Date.now();
   const todayStr = new Date().toISOString().split("T")[0];
   const newCount = currentCount + 1;
@@ -158,7 +159,7 @@ export async function updateStreakCheckin(
     return a;
   });
 
-  return client.updateEntity({
+  return walletClient.updateEntity({
     entityKey,
     payload: jsonToPayload(updatedPayload),
     contentType: "application/json",
@@ -168,6 +169,7 @@ export async function updateStreakCheckin(
 }
 
 export async function createValidationRecord(
+  walletClient: WalletClient,
   validatorWallet: `0x${string}`,
   data: {
     contributionKey: string;
@@ -176,9 +178,8 @@ export async function createValidationRecord(
     payload: ValidationRecordPayload;
   }
 ) {
-  const client = getWalletClient(validatorWallet);
   const now = Date.now();
-  return client.createEntity({
+  return walletClient.createEntity({
     payload: jsonToPayload(data.payload),
     contentType: "application/json",
     attributes: attrs([
@@ -194,7 +195,7 @@ export async function createValidationRecord(
 }
 
 export async function createPassport(
-  platformWallet: `0x${string}`,
+  walletClient: WalletClient,
   memberWallet: `0x${string}`,
   data: {
     totalPoints: number;
@@ -204,9 +205,8 @@ export async function createPassport(
     payload: ReputationPassportPayload;
   }
 ) {
-  const client = getWalletClient(platformWallet);
   const now = Date.now();
-  return client.createEntity({
+  return walletClient.createEntity({
     payload: jsonToPayload(data.payload),
     contentType: "application/json",
     attributes: attrs([
@@ -223,6 +223,7 @@ export async function createPassport(
 }
 
 export async function createBounty(
+  walletClient: WalletClient,
   posterWallet: `0x${string}`,
   data: {
     pillar: string;
@@ -232,9 +233,8 @@ export async function createBounty(
     payload: BountyPayload;
   }
 ) {
-  const client = getWalletClient(posterWallet);
   const now = Date.now();
-  return client.createEntity({
+  return walletClient.createEntity({
     payload: jsonToPayload(data.payload),
     contentType: "application/json",
     attributes: attrs([
@@ -253,13 +253,12 @@ export async function createBounty(
 
 export async function markBountyWinner(
   entityKey: `0x${string}`,
-  coordinatorWallet: `0x${string}`,
+  walletClient: WalletClient,
   winnerWallet: string,
   txHash: string,
   currentPayload: BountyPayload,
   currentAttrs: { key: string; value: string | number }[]
 ) {
-  const client = getWalletClient(coordinatorWallet);
   const updatedPayload: BountyPayload = {
     ...currentPayload,
     winnerWallet,
@@ -269,7 +268,7 @@ export async function markBountyWinner(
     if (a.key === "status") return { ...a, value: "completed" };
     return a;
   });
-  return client.updateEntity({
+  return walletClient.updateEntity({
     entityKey,
     payload: jsonToPayload(updatedPayload),
     contentType: "application/json",

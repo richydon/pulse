@@ -26,7 +26,7 @@ const TAGS_BY_CATEGORY: Record<string, string[]> = {
 
 export default function NewContributionPage() {
   const router = useRouter();
-  const { authenticated, address, login } = usePulseAuth();
+  const { authenticated, address, login, getWalletClient } = usePulseAuth();
   const [step, setStep] = useState(1);
   const [pillar, setPillar] = useState<Pillar | null>(null);
   const [category, setCategory] = useState("");
@@ -62,12 +62,14 @@ export default function NewContributionPage() {
       steps[1].status = "active";
       setWriteSteps([...steps]);
 
-      const result = await createContribution(address as `0x${string}`, {
+      const wc = await getWalletClient();
+      const result = await createContribution(wc, {
         pillar,
         category,
         points: basePoints,
         cohort: CURRENT_COHORT,
         earnedAt: new Date(earnedDate).getTime(),
+        contributorWallet: address as `0x${string}`,
         payload: {
           title,
           description,

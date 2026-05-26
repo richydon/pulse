@@ -1,8 +1,9 @@
 "use client";
 
-import { createPublicClient, createWalletClient, http } from "@arkiv-network/sdk";
+import { createPublicClient, createWalletClient, http, custom } from "@arkiv-network/sdk";
 import { braga } from "@arkiv-network/sdk/chains";
-import { BRAGA_RPC_URL } from "./constants";
+import type { ConnectedWallet } from "@privy-io/react-auth";
+import { BRAGA_CHAIN_ID, BRAGA_RPC_URL } from "./constants";
 
 export function getPublicClient() {
   return createPublicClient({
@@ -11,10 +12,8 @@ export function getPublicClient() {
   });
 }
 
-export function getWalletClient(account: `0x${string}`) {
-  return createWalletClient({
-    chain: braga,
-    transport: http(BRAGA_RPC_URL),
-    account,
-  });
+export async function getPrivyWalletClient(wallet: ConnectedWallet) {
+  await wallet.switchChain(BRAGA_CHAIN_ID);
+  const provider = await wallet.getEthereumProvider();
+  return createWalletClient({ chain: braga, transport: custom(provider) });
 }

@@ -15,7 +15,7 @@ function attrs(e: any) {
 }
 
 export default function LocationCheckinPage(props: { params: Promise<{ locationId: string }> }) {
-  const { authenticated, address, login } = usePulseAuth();
+  const { authenticated, address, login, getWalletClient } = usePulseAuth();
   const [locationId, setLocationId] = useState<LocationId | null>(null);
   const [streak, setStreak] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -48,9 +48,10 @@ export default function LocationCheckinPage(props: { params: Promise<{ locationI
 
     try {
       const streakAttrs = streak ? attrs(streak) : null;
+      const wc = await getWalletClient();
 
       if (!streak || isStreakBroken(streakAttrs?.lastCheckinAt ?? 0)) {
-        const result = await createStreak(address as `0x${string}`, "daily_burn", undefined, location.name);
+        await createStreak(wc, address as `0x${string}`, "daily_burn", undefined, location.name);
         const count = 1;
         setNewCount(count);
         const m = checkMilestone(count);
@@ -65,6 +66,7 @@ export default function LocationCheckinPage(props: { params: Promise<{ locationI
         const bestCount = streakAttrs.bestCount ?? 0;
         await updateStreakCheckin(
           streak.key as `0x${string}`,
+          wc,
           address as `0x${string}`,
           currentCount,
           bestCount,

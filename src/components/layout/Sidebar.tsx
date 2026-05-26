@@ -26,7 +26,7 @@ export function Sidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="w-52 shrink-0 bg-[#F8F9FA] border-l border-[#E5E7EB] h-full sticky top-14 overflow-y-auto py-3">
+    <aside className="hidden md:block w-52 shrink-0 bg-[#F8F9FA] border-l border-[#E5E7EB] h-full sticky top-14 overflow-y-auto py-3">
       <nav className="flex flex-col gap-0.5 px-2">
         {nav.map((item, i) => {
           if (!item) {

@@ -14,7 +14,7 @@ function attrs(e: any) {
 }
 
 export default function EndorsePage(props: { params: Promise<{ wallet: string }> }) {
-  const { authenticated, address, login } = usePulseAuth();
+  const { authenticated, address, login, getWalletClient } = usePulseAuth();
   const [toWallet, setToWallet] = useState("");
   const [skill, setSkill] = useState("");
   const [strength, setStrength] = useState(3);
@@ -51,7 +51,8 @@ export default function EndorsePage(props: { params: Promise<{ wallet: string }>
     setSubmitting(true);
     setError("");
     try {
-      const result = await createEndorsement(address as `0x${string}`, {
+      const wc = await getWalletClient();
+      const result = await createEndorsement(wc, address as `0x${string}`, {
         toWallet,
         skill,
         strength,

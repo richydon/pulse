@@ -2,6 +2,7 @@
 
 import { usePrivy, useWallets } from "@privy-io/react-auth";
 import { useMemo } from "react";
+import { getPrivyWalletClient } from "@/lib/arkiv/client";
 
 export function usePulseAuth() {
   const { ready, authenticated, user, login, logout } = usePrivy();
@@ -16,8 +17,7 @@ export function usePulseAuth() {
 
   async function getWalletClient() {
     if (!wallet) throw new Error("No wallet connected");
-    const provider = await wallet.getEthereumProvider();
-    return provider;
+    return getPrivyWalletClient(wallet);
   }
 
   return {

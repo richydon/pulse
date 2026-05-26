@@ -10,7 +10,7 @@ import { CheckCircle, Lock } from "lucide-react";
 
 export default function NewBountyPage() {
   const router = useRouter();
-  const { authenticated, address, login } = usePulseAuth();
+  const { authenticated, address, login, getWalletClient } = usePulseAuth();
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [rewardUSD, setRewardUSD] = useState("");
@@ -27,7 +27,8 @@ export default function NewBountyPage() {
     setError("");
     try {
       const deadlineTs = Math.floor((Date.now() + parseInt(deadlineDays) * 86400000) / 1000);
-      await createBounty(address as `0x${string}`, {
+      const wc = await getWalletClient();
+      await createBounty(wc, address as `0x${string}`, {
         pillar,
         rewardUSD: parseFloat(rewardUSD),
         deadline: deadlineTs,

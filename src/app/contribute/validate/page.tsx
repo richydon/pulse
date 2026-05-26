@@ -18,7 +18,7 @@ function attrs(e: any) {
 }
 
 export default function ValidatePage() {
-  const { authenticated, address, login } = usePulseAuth();
+  const { authenticated, address, login, getWalletClient } = usePulseAuth();
   const [queue, setQueue] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeKey, setActiveKey] = useState<string | null>(null);
@@ -53,7 +53,8 @@ export default function ValidatePage() {
     setWriteSteps([...steps]);
 
     try {
-      await createValidationRecord(address as `0x${string}`, {
+      const wc = await getWalletClient();
+      await createValidationRecord(wc, address as `0x${string}`, {
         contributionKey: contribution.key,
         contributorWallet: a.contributorWallet,
         verdict,
@@ -71,7 +72,7 @@ export default function ValidatePage() {
         if (approvedCount >= 2) {
           await updateContributionStatus(
             contribution.key as `0x${string}`,
-            address as `0x${string}`,
+            wc,
             "validated",
             approvedCount,
             parseEntityPayload(contribution) as any,
