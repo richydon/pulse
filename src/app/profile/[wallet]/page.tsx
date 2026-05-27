@@ -10,7 +10,9 @@ import {
   getEndorsementsForWallet,
   getActiveStreak,
   getPassport,
+  getValidationsForContribution,
 } from "@/lib/arkiv/queries";
+import { updateContributionStatus } from "@/lib/arkiv/entities";
 import {
   truncateHex,
   formatDate,
@@ -19,10 +21,11 @@ import {
 } from "@/lib/utils/format";
 import { Avatar } from "@/components/ui/Avatar";
 import { aggregatePointsByPillar, totalPoints } from "@/lib/points/calculator";
+import { usePulseAuth } from "@/hooks/usePulseAuth";
 import { BRAGA_EXPLORER_URL, PILLAR_COLORS, PILLAR_SOFT_COLORS, CURRENT_COHORT } from "@/lib/arkiv/constants";
 import {
   Copy, ExternalLink, Flame, GraduationCap, Bitcoin, PartyPopper,
-  Star, Award, Shield, CheckCircle,
+  Star, Award, Shield, CheckCircle, Zap,
 } from "lucide-react";
 import {
   RadarChart, PolarGrid, PolarAngleAxis, Radar, ResponsiveContainer,
@@ -33,6 +36,7 @@ function copyText(text: string) {
 }
 
 export default function ProfilePage(props: { params: Promise<{ wallet: string }> }) {
+  const { address: myAddress, getWalletClient } = usePulseAuth();
   const [wallet, setWallet] = useState<string>("");
   const [contributions, setContributions] = useState<any[]>([]);
   const [endorsements, setEndorsements] = useState<any[]>([]);
@@ -40,6 +44,9 @@ export default function ProfilePage(props: { params: Promise<{ wallet: string }>
   const [passport, setPassport] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [pillarFilter, setPillarFilter] = useState<string>("all");
+  // Real approval counts per pending contribution (keyed by entity key)
+  const [approvalCounts, setApprovalCounts] = useState<Record<string, number>>({});
+  const [finalising, setFinalising] = useState<string | null>(null);
 
   useEffect(() => {
     props.params.then(({ wallet: w }) => {
@@ -59,9 +66,70 @@ export default function ProfilePage(props: { params: Promise<{ wallet: string }>
     });
   }, []);
 
+  // Load real approval counts for pending contributions (only for own profile)
+  useEffect(() => {
+    if (!myAddress || !wallet) return;
+    const isOwn = wallet.toLowerCase() === myAddress.toLowerCase();
+    if (!isOwn) return;
+    const pending = contributions.filter((c) => attrs(c).status === "pending");
+    if (pending.length === 0) return;
+    pending.forEach((c) => {
+      getValidationsForContribution(c.key)
+        .then((vs) => {
+          const count = (vs as any[]).filter((v) => attrs(v).verdict === "approved").length;
+          setApprovalCounts((prev) => ({ ...prev, [c.key]: count }));
+        })
+        .catch((err) => console.error("[Profile] approval count fetch failed:", err));
+    });
+  }, [contributions, myAddress, wallet]);
+
+  async function finalise(contribution: any) {
+    if (!contribution.key || finalising) return;
+    setFinalising(contribution.key);
+    try {
+      const wc = await getWalletClient();
+      const count = approvalCounts[contribution.key] ?? 2;
+      await updateContributionStatus(
+        contribution.key as `0x${string}`,
+        wc,
+        "validated",
+        count,
+        parseEntityPayload(contribution),
+        contribution.attributes ?? []
+      );
+      // Optimistically update local state
+      setContributions((prev) =>
+        prev.map((c) =>
+          c.key === contribution.key
+            ? {
+                ...c,
+                attributes: (c.attributes ?? []).map((at: any) =>
+                  at.key === "status"
+                    ? { ...at, value: "validated" }
+                    : at.key === "validationCount"
+                    ? { ...at, value: count }
+                    : at
+                ),
+              }
+            : c
+        )
+      );
+      setApprovalCounts((prev) => {
+        const next = { ...prev };
+        delete next[contribution.key];
+        return next;
+      });
+    } catch (e: any) {
+      alert(e?.message ?? "Finalise transaction failed");
+    } finally {
+      setFinalising(null);
+    }
+  }
+
   const attrs = (e: any) =>
     (e.attributes ?? []).reduce((m: any, a: any) => ({ ...m, [a.key]: a.value }), {});
 
+  const isOwn = !!myAddress && !!wallet && wallet.toLowerCase() === myAddress.toLowerCase();
   const contribAttrs = contributions.map(attrs);
   const pillarBreakdown = aggregatePointsByPillar(contribAttrs);
   const total = totalPoints(contribAttrs);
@@ -306,7 +374,11 @@ export default function ProfilePage(props: { params: Promise<{ wallet: string }>
                             </a>
                           )}
                           <span className="flex items-center gap-1">
-                            <Shield className="w-3 h-3" /> {a.validationCount ?? 0}/2 validators
+                            <Shield className="w-3 h-3" />
+                            {isOwn && approvalCounts[c.key] !== undefined
+                              ? approvalCounts[c.key]
+                              : a.validationCount ?? 0}
+                            /2 validators
                           </span>
                         </div>
                       </div>
@@ -317,6 +389,51 @@ export default function ProfilePage(props: { params: Promise<{ wallet: string }>
                         <p className="text-xs text-[#9CA3AF]">pts</p>
                       </div>
                     </div>
+
+                    {/* Finalise button — only for own pending contributions with ≥2 approvals */}
+                    {isOwn && a.status === "pending" && (approvalCounts[c.key] ?? 0) >= 2 && (
+                      <div className="mt-3 pt-3 border-t border-[#F3F4F6] flex items-center justify-between">
+                        <span className="text-xs text-[#10B981] flex items-center gap-1">
+                          <CheckCircle className="w-3.5 h-3.5" />
+                          {approvalCounts[c.key]} peers confirmed this contribution
+                        </span>
+                        <button
+                          onClick={() => finalise(c)}
+                          disabled={finalising === c.key}
+                          className="btn-ns text-xs px-3 py-1.5 flex items-center gap-1.5"
+                        >
+                          <Zap className="w-3.5 h-3.5" />
+                          {finalising === c.key ? "Finalising…" : "Finalise Validation ✓"}
+                        </button>
+                      </div>
+                    )}
+
+                    {/* Share link for pending contributions on own profile */}
+                    {isOwn && a.status === "pending" && (approvalCounts[c.key] ?? 0) < 2 && c.key && (
+                      <div className="mt-3 pt-3 border-t border-[#F3F4F6]">
+                        <p className="text-xs text-[#9CA3AF] mb-1.5">
+                          Share with peers to get validated ({approvalCounts[c.key] ?? 0}/2 so far)
+                        </p>
+                        <div className="flex items-center gap-2">
+                          <span className="font-mono text-xs text-[#0D9488] bg-[#F0FDFA] rounded px-2 py-1 flex-1 truncate">
+                            {typeof window !== "undefined"
+                              ? `${window.location.origin}/contribute/validate/${c.key}`
+                              : `/contribute/validate/${c.key}`}
+                          </span>
+                          <button
+                            onClick={() => {
+                              const url = `${window.location.origin}/contribute/validate/${c.key}`;
+                              navigator.clipboard.writeText(url).catch(() => {});
+                            }}
+                            className="text-[#9CA3AF] hover:text-[#6B7280] p-1"
+                            title="Copy validation link"
+                          >
+                            <Copy className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
                     {c.key && (
                       <div className="mt-3">
                         <ArkivBadge

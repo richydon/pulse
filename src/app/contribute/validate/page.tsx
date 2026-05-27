@@ -8,7 +8,7 @@ import { ChainWriteProgress, type WriteStep } from "@/components/ui/ChainWritePr
 import { EmptyState } from "@/components/ui/EmptyState";
 import { usePulseAuth } from "@/hooks/usePulseAuth";
 import { getPendingValidationQueue, getValidationsForContribution } from "@/lib/arkiv/queries";
-import { createValidationRecord, updateContributionStatus } from "@/lib/arkiv/entities";
+import { createValidationRecord } from "@/lib/arkiv/entities";
 import { CURRENT_COHORT } from "@/lib/arkiv/constants";
 import { truncateHex, formatRelativeDate, parseEntityPayload } from "@/lib/utils/format";
 import { CheckCircle, XCircle, ExternalLink, Lock, CheckSquare, Copy, Check, Link2 } from "lucide-react";
@@ -40,8 +40,17 @@ export default function ValidatePage() {
           (c) => attrs(c).contributorWallet?.toLowerCase() !== address.toLowerCase()
         );
         setQueue(filtered);
+        // Load real validation counts for each contribution
+        filtered.forEach((c: any) => {
+          getValidationsForContribution(c.key)
+            .then((vs) => {
+              const count = (vs as any[]).filter((v) => attrs(v).verdict === "approved").length;
+              setValCounts((prev) => ({ ...prev, [c.key]: count }));
+            })
+            .catch(() => {});
+        });
       })
-      .catch(() => {})
+      .catch((err) => console.error("[Validate queue] failed:", err))
       .finally(() => setLoading(false));
   }, [address]);
 
@@ -64,28 +73,14 @@ export default function ValidatePage() {
         payload: { note: note.trim(), evidenceVerified: verified },
       });
       steps[0].status = "done";
-      steps[1].status = "active";
-      setWriteSteps([...steps]);
-
-      if (verdict === "approved") {
-        const existingValidations = await getValidationsForContribution(contribution.key);
-        const approvedCount = (existingValidations as any[]).filter(
-          (v) => attrs(v).verdict === "approved"
-        ).length;
-        if (approvedCount >= 2) {
-          await updateContributionStatus(
-            contribution.key as `0x${string}`,
-            wc,
-            "validated",
-            approvedCount,
-            parseEntityPayload(contribution) as any,
-            contribution.attributes ?? []
-          );
-        }
-      }
-
       steps[1].status = "done";
       setWriteSteps([...steps]);
+
+      // Update real-time count
+      const updated = await getValidationsForContribution(contribution.key).catch(() => []);
+      const newCount = (updated as any[]).filter((v) => attrs(v).verdict === "approved").length;
+      setValCounts((prev) => ({ ...prev, [contribution.key]: newCount }));
+
       setQueue((q) => q.filter((c) => c.key !== contribution.key));
       setTimeout(() => {
         setActiveKey(null);
@@ -147,6 +142,8 @@ export default function ValidatePage() {
               const payload = parseEntityPayload(contribution);
               const isActive = activeKey === contribution.key;
 
+              const realCount = valCounts[contribution.key] ?? a.validationCount ?? 0;
+
               return (
                 <div key={contribution.key} className="card-ns">
                   <div className="flex items-start gap-3 mb-3">
@@ -159,6 +156,22 @@ export default function ValidatePage() {
                         <span className="text-xs text-[#9CA3AF] ml-auto">
                           {a.createdAt ? formatRelativeDate(a.createdAt) : ""}
                         </span>
+                        {/* Copy link button */}
+                        <button
+                          onClick={() => {
+                            const url = `${window.location.origin}/contribute/validate/${contribution.key}`;
+                            navigator.clipboard.writeText(url).then(() => {
+                              setCopiedKey(contribution.key);
+                              setTimeout(() => setCopiedKey(null), 2000);
+                            });
+                          }}
+                          className="text-[#9CA3AF] hover:text-[#6B7280] transition-colors"
+                          title="Copy validation link"
+                        >
+                          {copiedKey === contribution.key
+                            ? <Check className="w-3.5 h-3.5 text-[#10B981]" />
+                            : <Link2 className="w-3.5 h-3.5" />}
+                        </button>
                       </div>
                       <p className="text-sm font-semibold text-[#111827]">{payload.title ?? a.category}</p>
                       {payload.description && (
@@ -175,7 +188,7 @@ export default function ValidatePage() {
                             View evidence <ExternalLink className="w-3 h-3" />
                           </a>
                         )}
-                        <span className="text-xs text-[#9CA3AF]">{a.validationCount ?? 0}/2 validators</span>
+                        <span className="text-xs text-[#9CA3AF]">{realCount}/2 validators</span>
                         <span className="text-xs font-bold text-[#111827] ml-auto">+{a.points} pts</span>
                       </div>
                     </div>
