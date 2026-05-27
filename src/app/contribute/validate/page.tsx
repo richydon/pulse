@@ -117,7 +117,7 @@ export default function ValidatePage() {
       <div className="max-w-2xl mx-auto px-6 py-8">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="text-2xl font-bold text-[#111827]" style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>
+            <h1 className="text-2xl font-black text-[#111827] tracking-tight">
               Validation Queue
             </h1>
             <p className="text-sm text-[#6B7280] mt-0.5">

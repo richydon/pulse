@@ -109,7 +109,7 @@ export default function LocationCheckinPage(props: { params: Promise<{ locationI
         <div className="w-16 h-16 rounded-2xl bg-[#FFF7ED] flex items-center justify-center mx-auto mb-4">
           <MapPin className="w-8 h-8 text-[#F97316]" />
         </div>
-        <h1 className="text-2xl font-bold text-[#111827] mb-1" style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>
+        <h1 className="text-2xl font-black text-[#111827] mb-1 tracking-tight">
           {location?.name ?? "Unknown Location"}
         </h1>
         <p className="text-sm text-[#6B7280] mb-2 capitalize">{location?.pillar} · +{location?.points} pts</p>

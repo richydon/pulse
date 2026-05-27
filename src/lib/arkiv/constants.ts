@@ -2,8 +2,8 @@ export const PROJECT_ATTRIBUTE = { key: "app", value: "pulse:v1" } as const;
 
 export const BRAGA_CHAIN_ID = 60138453102;
 export const BRAGA_RPC_URL =
-  process.env.NEXT_PUBLIC_ARKIV_BRAGA_RPC ?? "https://rpc.braga.arkiv.network";
-export const BRAGA_EXPLORER_URL = "https://explorer.braga.arkiv.network";
+  process.env.NEXT_PUBLIC_ARKIV_BRAGA_RPC ?? "https://braga.hoodi.arkiv.network/rpc";
+export const BRAGA_EXPLORER_URL = "https://explorer.braga.hoodi.arkiv.network";
 export const ARKIV_DATA_URL = "https://data.arkiv.network";
 
 export const CURRENT_COHORT = "ns-v3-2026";

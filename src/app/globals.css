@@ -50,7 +50,6 @@
 
   /* Fonts */
   --font-sans: "Inter", system-ui, sans-serif;
-  --font-serif: "Playfair Display", Georgia, serif;
   --font-mono: "Geist Mono", "Fira Code", monospace;
 }
 
@@ -72,12 +71,12 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Pillar heading style (large serif like NS.com "Learn" / "Events") */
+/* Pillar heading style */
 .heading-pillar {
-  font-family: "Playfair Display", Georgia, serif;
+  font-family: "Inter", system-ui, sans-serif;
   font-size: 2.5rem;
-  font-weight: 700;
-  letter-spacing: -0.02em;
+  font-weight: 800;
+  letter-spacing: -0.03em;
   color: #111827;
 }
 
@@ -157,6 +156,109 @@ body {
   background-color: #F0FDFA;
   padding: 0.1rem 0.4rem;
   border-radius: 0.25rem;
+}
+
+/* Landing page floating stat card */
+.float-card {
+  background: white;
+  border-radius: 0.875rem;
+  padding: 0.5rem 0.875rem;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.06);
+  border: 1px solid rgba(0,0,0,0.06);
+  white-space: nowrap;
+}
+
+/* Gradient text utility */
+.text-gradient-blue {
+  background: linear-gradient(135deg, #2563EB, #60A5FA);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ── Force sans-serif on all headings (no browser-default serif bleed) ── */
+h1, h2, h3, h4, h5, h6 {
+  font-family: "Inter", system-ui, sans-serif;
+}
+
+/* Display heading utility — Inter Black with ultra-tight tracking */
+.text-display {
+  font-family: "Inter", system-ui, sans-serif;
+  font-weight: 900;
+  letter-spacing: -0.04em;
+  line-height: 1.02;
+}
+
+/* Glass card utility */
+.glass-card {
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+}
+
+/* ── Marquee (cohort trust strip) ── */
+@keyframes marquee {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+.animate-marquee {
+  animation: marquee 28s linear infinite;
+  display: flex;
+  width: max-content;
+}
+.animate-marquee:hover {
+  animation-play-state: paused;
+}
+
+/* ── Shimmer skeleton effect ── */
+@keyframes shimmer {
+  0%   { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
+.shimmer {
+  background: linear-gradient(90deg, #E5E7EB 25%, #F3F4F6 50%, #E5E7EB 75%);
+  background-size: 800px 100%;
+  animation: shimmer 1.6s infinite linear;
+}
+.shimmer-dark {
+  background: linear-gradient(90deg, #1F2937 25%, #374151 50%, #1F2937 75%);
+  background-size: 800px 100%;
+  animation: shimmer 1.6s infinite linear;
+}
+
+/* ── Pulse ring (CTA button glow) ── */
+@keyframes pulse-ring {
+  0%   { transform: scale(1);   opacity: 0.5; }
+  70%  { transform: scale(1.5); opacity: 0; }
+  100% { transform: scale(1.5); opacity: 0; }
+}
+.pulse-ring::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: rgba(37, 99, 235, 0.4);
+  animation: pulse-ring 2s cubic-bezier(0.25, 0.46, 0.45, 0.94) infinite;
+  pointer-events: none;
+}
+
+/* ── Gold shimmer for leaderboard #1 row ── */
+@keyframes gold-shimmer {
+  0%   { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+.rank-gold {
+  background: linear-gradient(90deg,
+    rgba(251,191,36,0.08) 0%,
+    rgba(251,191,36,0.18) 40%,
+    rgba(251,191,36,0.08) 80%,
+    rgba(251,191,36,0.08) 100%
+  );
+  background-size: 200% auto;
+  animation: gold-shimmer 3s linear infinite;
+  border-color: rgba(251,191,36,0.35) !important;
 }
 
 /* Scrollbar */

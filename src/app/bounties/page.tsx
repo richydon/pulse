@@ -32,7 +32,7 @@ export default function BountiesPage() {
       <div className="max-w-3xl mx-auto px-6 py-8">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="text-3xl font-bold text-[#111827]" style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>
+            <h1 className="text-3xl font-black text-[#111827] tracking-tight">
               Bounties
             </h1>
             <p className="text-sm text-[#6B7280] mt-1">Open tasks with on-chain rewards</p>

@@ -17,8 +17,8 @@ export function TopBar() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  /* Hero is dark, inner pages are light — adapt text colours per scroll state */
-  const onDark = !scrolled;
+  /* Hero is white — nav always uses dark text; scrolled state adds the bg */
+  const onDark = false;
 
   return (
     <header

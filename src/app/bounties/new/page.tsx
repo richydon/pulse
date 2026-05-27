@@ -63,7 +63,7 @@ export default function NewBountyPage() {
   return (
     <AppShell>
       <div className="max-w-xl mx-auto px-6 py-8">
-        <h1 className="text-2xl font-bold text-[#111827] mb-6" style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>
+        <h1 className="text-2xl font-black text-[#111827] mb-6 tracking-tight">
           Post a Bounty
         </h1>
         {done ? (

@@ -55,7 +55,7 @@ export default function BountyDetailPage(props: { params: Promise<{ key: string 
             {a.status}
           </span>
         </div>
-        <h1 className="text-2xl font-bold text-[#111827] mb-3" style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>
+        <h1 className="text-2xl font-black text-[#111827] mb-3 tracking-tight">
           {payload.title}
         </h1>
         <div className="flex items-center gap-4 mb-4">

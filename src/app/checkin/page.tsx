@@ -24,7 +24,7 @@ export default function CheckinPage() {
   return (
     <AppShell>
       <div className="max-w-xl mx-auto px-6 py-8">
-        <h1 className="text-2xl font-bold text-[#111827] mb-1" style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>
+        <h1 className="text-2xl font-black text-[#111827] mb-1 tracking-tight">
           Check In
         </h1>
         <p className="text-sm text-[#6B7280] mb-6">Select a location or scan the QR code at the venue.</p>

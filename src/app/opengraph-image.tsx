@@ -16,7 +16,7 @@ export default function OGImage() {
           flexDirection: "column",
           backgroundColor: "#111827",
           padding: "60px 80px",
-          fontFamily: "Georgia, serif",
+          fontFamily: "system-ui, sans-serif",
         }}
       >
         {/* Top badge */}
