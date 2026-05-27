@@ -8,7 +8,7 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { getOpenBounties } from "@/lib/arkiv/queries";
 import { CURRENT_COHORT } from "@/lib/arkiv/constants";
 import { formatUSD, formatCountdown, formatRelativeDate, truncateHex, parseEntityPayload } from "@/lib/utils/format";
-import { Briefcase, Plus, Clock, Trophy, Users } from "lucide-react";
+import { Briefcase, Plus, Clock, Trophy, Copy, Check } from "lucide-react";
 import { usePulseAuth } from "@/hooks/usePulseAuth";
 
 function attrs(e: any) {
@@ -19,6 +19,7 @@ export default function BountiesPage() {
   const { authenticated } = usePulseAuth();
   const [bounties, setBounties] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [copiedKey, setCopiedKey] = useState<string | null>(null);
 
   useEffect(() => {
     getOpenBounties({ cohort: CURRENT_COHORT })
@@ -146,12 +147,39 @@ export default function BountiesPage() {
                           {timeLeft} left
                         </span>
                       )}
-                      <span className="ml-auto text-xs text-[#9CA3AF]">
+                      <span className="text-xs text-[#9CA3AF]">
                         by{" "}
                         <span className="font-mono text-[#0D9488]">
                           {truncateHex(a.postedBy ?? "", 6, 4)}
                         </span>
                       </span>
+
+                      {/* Copy link button — ml-auto pushes it right */}
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          const url = `${window.location.origin}/bounties/${b.key}`;
+                          navigator.clipboard.writeText(url).then(() => {
+                            setCopiedKey(b.key);
+                            setTimeout(() => setCopiedKey(null), 2000);
+                          });
+                        }}
+                        title={copiedKey === b.key ? "Copied!" : "Copy bounty link"}
+                        className="ml-auto flex items-center gap-1.5 text-xs text-[#9CA3AF] hover:text-[#111827] transition-colors px-2 py-1 rounded-lg hover:bg-[#F3F4F6]"
+                      >
+                        {copiedKey === b.key ? (
+                          <>
+                            <Check className="w-3.5 h-3.5 text-[#10B981]" />
+                            <span className="text-[#10B981] font-medium">Copied!</span>
+                          </>
+                        ) : (
+                          <>
+                            <Copy className="w-3.5 h-3.5" />
+                            <span>Copy link</span>
+                          </>
+                        )}
+                      </button>
                     </div>
                   </div>
                 </Link>
