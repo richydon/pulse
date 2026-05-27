@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { AppShell } from "@/components/layout/AppShell";
 import { PillarBadge } from "@/components/ui/PillarBadge";
 import { ChainWriteProgress, type WriteStep } from "@/components/ui/ChainWriteProgress";
@@ -9,9 +9,17 @@ import { usePulseAuth } from "@/hooks/usePulseAuth";
 import { createContribution } from "@/lib/arkiv/entities";
 import { CATEGORIES, PILLAR_COLORS, PILLAR_SOFT_COLORS, CURRENT_COHORT, type Pillar } from "@/lib/arkiv/constants";
 import { getBasePoints } from "@/lib/points/calculator";
-import { GraduationCap, Flame, Bitcoin, PartyPopper, CheckCircle, ExternalLink } from "lucide-react";
+import { truncateHex } from "@/lib/utils/format";
+import { GraduationCap, Flame, Bitcoin, PartyPopper, CheckCircle, ExternalLink, Copy, Check, Briefcase } from "lucide-react";
 
 const PILLAR_ICONS = { learn: GraduationCap, burn: Flame, earn: Bitcoin, fun: PartyPopper };
+
+const PILLAR_META: Record<Pillar, { image: string; desc: string; maxPts: number }> = {
+  learn: { image: "/learn.webp", desc: "Teach workshops, mentor founders, create content.", maxPts: 100 },
+  burn:  { image: "/burn.webp",  desc: "Work out, set records, join NS Cup events.",         maxPts: 75  },
+  earn:  { image: "/earn.webp",  desc: "Win bounties, ship startups, build in public.",      maxPts: 200 },
+  fun:   { image: "/fun.webp",   desc: "Organize events, build communities, drive culture.", maxPts: 70  },
+};
 
 const TAGS_BY_CATEGORY: Record<string, string[]> = {
   bounty_won: ["bounty", "earn", "USDC"],
@@ -26,6 +34,7 @@ const TAGS_BY_CATEGORY: Record<string, string[]> = {
 
 export default function NewContributionPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { authenticated, address, login, getWalletClient } = usePulseAuth();
   const [step, setStep] = useState(1);
   const [pillar, setPillar] = useState<Pillar | null>(null);
@@ -39,6 +48,8 @@ export default function NewContributionPage() {
   const [writeSteps, setWriteSteps] = useState<WriteStep[]>([]);
   const [entityKey, setEntityKey] = useState("");
   const [error, setError] = useState("");
+  const [copied, setCopied] = useState(false);
+  const bountyKey = searchParams.get("bountyKey") ?? undefined;
 
   const basePoints = pillar && category ? getBasePoints(pillar, category) : 0;
 
@@ -70,6 +81,7 @@ export default function NewContributionPage() {
         cohort: CURRENT_COHORT,
         earnedAt: new Date(earnedDate).getTime(),
         contributorWallet: address as `0x${string}`,
+        bountyKey,
         payload: {
           title,
           description,
@@ -113,7 +125,16 @@ export default function NewContributionPage() {
         <h1 className="text-2xl font-black text-[#111827] mb-1 tracking-tight">
           Log a Contribution
         </h1>
-        <p className="text-sm text-[#6B7280] mb-6">Your contribution will need 2 peer validators before it appears on your profile.</p>
+        {bountyKey ? (
+          <div className="flex items-center gap-2 bg-[#FFF7ED] border border-[#FED7AA] rounded-lg px-3 py-2 mb-4">
+            <Briefcase className="w-4 h-4 text-[#F97316] shrink-0" />
+            <p className="text-xs text-[#C2410C]">
+              Completing bounty <span className="font-mono">{truncateHex(bountyKey, 8, 6)}</span> — this contribution will be linked to the bounty.
+            </p>
+          </div>
+        ) : (
+          <p className="text-sm text-[#6B7280] mb-6">Your contribution will need 2 peer validators before it appears on your profile.</p>
+        )}
 
         {/* Step indicator */}
         <div className="flex items-center gap-2 mb-8">
@@ -133,21 +154,59 @@ export default function NewContributionPage() {
         {step === 1 && (
           <div>
             <h2 className="text-base font-semibold text-[#111827] mb-4">What did you do?</h2>
-            <div className="grid grid-cols-2 gap-3 mb-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
               {(["learn", "burn", "earn", "fun"] as Pillar[]).map((p) => {
-                const Icon = PILLAR_ICONS[p];
+                const meta = PILLAR_META[p];
                 const active = pillar === p;
                 return (
                   <button
                     key={p}
                     onClick={() => { setPillar(p); setCategory(""); }}
-                    className="card-ns flex flex-col items-center py-5 transition-all hover:shadow-sm"
-                    style={active ? { borderColor: PILLAR_COLORS[p], backgroundColor: PILLAR_SOFT_COLORS[p] } : {}}
+                    className={`relative rounded-2xl overflow-hidden h-60 sm:h-64 w-full text-left transition-all focus:outline-none ${
+                      active ? "" : "hover:scale-[1.02]"
+                    }`}
                   >
-                    <Icon className="w-6 h-6 mb-2" style={{ color: PILLAR_COLORS[p] }} />
-                    <span className="text-sm font-semibold capitalize" style={{ color: active ? PILLAR_COLORS[p] : "#111827" }}>
-                      {p}
-                    </span>
+                    {/* Background image */}
+                    <div
+                      className="absolute inset-0 bg-cover bg-center"
+                      style={{ backgroundImage: `url('${meta.image}')` }}
+                    />
+                    {/* Gradient overlay */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+                    {/* Content */}
+                    <div className="absolute bottom-0 left-0 right-0 p-4">
+                      <p className="text-xl font-bold text-white capitalize mb-1">{p}</p>
+                      <p className="text-xs text-white/80 leading-snug mb-3">{meta.desc}</p>
+                      <div className="flex items-center justify-between">
+                        <span
+                          className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full"
+                          style={{
+                            backgroundColor: `${PILLAR_COLORS[p]}44`,
+                            color: "#fff",
+                            border: `1px solid ${PILLAR_COLORS[p]}88`,
+                          }}
+                        >
+                          Up to {meta.maxPts} pts
+                        </span>
+                        <span
+                          className="text-xs font-semibold px-3 py-1 rounded-full transition-colors"
+                          style={
+                            active
+                              ? { backgroundColor: PILLAR_COLORS[p], color: "#fff" }
+                              : { backgroundColor: "#fff", color: "#111827" }
+                          }
+                        >
+                          {active ? "✓ Selected" : "Select"}
+                        </span>
+                      </div>
+                    </div>
+                    {/* Active border overlay */}
+                    {active && (
+                      <div
+                        className="absolute inset-0 rounded-2xl pointer-events-none"
+                        style={{ boxShadow: `inset 0 0 0 3px ${PILLAR_COLORS[p]}` }}
+                      />
+                    )}
                   </button>
                 );
               })}
@@ -345,22 +404,55 @@ export default function NewContributionPage() {
           <div>
             <ChainWriteProgress steps={writeSteps} />
             {entityKey && (
-              <div className="mt-6 card-ns text-center">
-                <CheckCircle className="w-8 h-8 text-[#10B981] mx-auto mb-3" />
-                <p className="font-semibold text-[#111827] mb-1">Contribution recorded on Arkiv!</p>
-                <p className="text-sm text-[#6B7280] mb-3">Share this link to request validation from peers:</p>
-                <div className="font-mono text-xs text-[#0D9488] bg-[#F0FDFA] rounded p-2 break-all mb-4">
-                  {entityKey}
+              <div className="mt-6 card-ns">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-10 h-10 rounded-full bg-[#ECFDF5] flex items-center justify-center shrink-0">
+                    <CheckCircle className="w-5 h-5 text-[#10B981]" />
+                  </div>
+                  <div>
+                    <p className="font-bold text-[#111827]">Contribution recorded on Arkiv!</p>
+                    <p className="text-xs text-[#6B7280]">Share the link below to collect peer validations.</p>
+                  </div>
                 </div>
-                <div className="flex gap-2 justify-center">
+
+                {/* Shareable validation link */}
+                <div className="bg-[#F0FDFA] border border-[#6EE7B7] rounded-lg p-3 mb-4">
+                  <p className="text-xs font-medium text-[#059669] mb-1.5">Validation link — share with 2 peers</p>
+                  <div className="flex items-center gap-2">
+                    <span className="flex-1 font-mono text-xs text-[#0D9488] break-all">
+                      {typeof window !== "undefined"
+                        ? `${window.location.origin}/contribute/validate/${entityKey}`
+                        : `/contribute/validate/${entityKey}`}
+                    </span>
+                    <button
+                      onClick={() => {
+                        const url = `${window.location.origin}/contribute/validate/${entityKey}`;
+                        navigator.clipboard.writeText(url).then(() => {
+                          setCopied(true);
+                          setTimeout(() => setCopied(false), 2000);
+                        });
+                      }}
+                      className="shrink-0 w-8 h-8 rounded-lg flex items-center justify-center bg-[#D1FAE5] text-[#059669] hover:bg-[#A7F3D0] transition-colors"
+                      title="Copy link"
+                    >
+                      {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                    </button>
+                  </div>
+                </div>
+
+                <p className="text-xs text-[#9CA3AF] mb-4">
+                  Your contribution needs 2 peer validations before points appear on your profile and the leaderboard.
+                </p>
+
+                <div className="flex gap-2">
                   <button
                     onClick={() => router.push(`/profile/${address}`)}
-                    className="btn-ns text-sm px-4 py-2"
+                    className="btn-ns text-sm px-4 py-2 flex-1"
                   >
                     View Profile
                   </button>
                   <button
-                    onClick={() => { setStep(1); setPillar(null); setCategory(""); setTitle(""); setDescription(""); setEvidence(""); setEntityKey(""); setError(""); }}
+                    onClick={() => { setStep(1); setPillar(null); setCategory(""); setTitle(""); setDescription(""); setEvidence(""); setEntityKey(""); setError(""); setCopied(false); }}
                     className="btn-ns-outline text-sm px-4 py-2"
                   >
                     Log Another

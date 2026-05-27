@@ -183,6 +183,22 @@ export async function getBountyByKey(key: string) {
   return getPublicClient().getEntity(key as `0x${string}`);
 }
 
+export async function getContributionByKey(key: string) {
+  return getPublicClient().getEntity(key as `0x${string}`);
+}
+
+export async function getSubmissionsForBounty(bountyKey: string, limit = 50) {
+  const result = await base()
+    .where([eq("type", "contribution"), eq("bountyKey", bountyKey)])
+    .orderBy("createdAt", "number", "desc")
+    .withAttributes(true)
+    .withPayload(true)
+    .withMetadata(true)
+    .limit(limit)
+    .fetch();
+  return result.entities;
+}
+
 export async function getCohortStats(cohort: string = CURRENT_COHORT) {
   const [contributions, passports, streaks, bounties] = await Promise.all([
     base()

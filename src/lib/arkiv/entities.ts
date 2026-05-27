@@ -30,6 +30,7 @@ export async function createContribution(
     cohort?: string;
     earnedAt?: number;
     contributorWallet: `0x${string}`;
+    bountyKey?: string;
     payload: ContributionPayload;
   }
 ) {
@@ -48,6 +49,7 @@ export async function createContribution(
       { key: "validationCount", value: 0 },
       { key: "earnedAt", value: data.earnedAt ?? now },
       { key: "createdAt", value: now },
+      ...(data.bountyKey ? [{ key: "bountyKey", value: data.bountyKey }] : []),
     ]),
     expiresIn: ExpirationTime.fromDays(36500),
   });
@@ -56,7 +58,7 @@ export async function createContribution(
 export async function updateContributionStatus(
   entityKey: `0x${string}`,
   walletClient: WalletClient,
-  status: "validated" | "rejected",
+  status: "validated" | "rejected" | "pending",
   validationCount: number,
   currentPayload: ContributionPayload,
   currentAttrs: { key: string; value: string | number }[]

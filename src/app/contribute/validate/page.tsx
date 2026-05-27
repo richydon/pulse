@@ -11,7 +11,7 @@ import { getPendingValidationQueue, getValidationsForContribution } from "@/lib/
 import { createValidationRecord, updateContributionStatus } from "@/lib/arkiv/entities";
 import { CURRENT_COHORT } from "@/lib/arkiv/constants";
 import { truncateHex, formatRelativeDate, parseEntityPayload } from "@/lib/utils/format";
-import { CheckCircle, XCircle, ExternalLink, Lock, CheckSquare } from "lucide-react";
+import { CheckCircle, XCircle, ExternalLink, Lock, CheckSquare, Copy, Check, Link2 } from "lucide-react";
 
 function attrs(e: any) {
   return (e.attributes ?? []).reduce((m: any, a: any) => ({ ...m, [a.key]: a.value }), {});
@@ -28,6 +28,9 @@ export default function ValidatePage() {
   const [writeSteps, setWriteSteps] = useState<WriteStep[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const [copiedKey, setCopiedKey] = useState<string | null>(null);
+  // Per-contribution validation counts loaded lazily
+  const [valCounts, setValCounts] = useState<Record<string, number>>({});
 
   useEffect(() => {
     if (!address) return;
