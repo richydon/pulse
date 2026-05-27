@@ -12,6 +12,11 @@ import type {
 
 type WalletClient = Awaited<ReturnType<typeof import("./client").getPrivyWalletClient>>;
 
+/** Normalise an Ethereum address to lowercase so case-sensitive queries always match. */
+function addr(a: string): string {
+  return a.toLowerCase();
+}
+
 function attrs(extra: { key: string; value: string | number }[]) {
   return [{ key: PROJECT_ATTRIBUTE.key, value: PROJECT_ATTRIBUTE.value }, ...extra];
 }
@@ -36,7 +41,7 @@ export async function createContribution(
       { key: "type", value: "contribution" },
       { key: "pillar", value: data.pillar },
       { key: "category", value: data.category },
-      { key: "contributorWallet", value: data.contributorWallet },
+      { key: "contributorWallet", value: addr(data.contributorWallet) },
       { key: "cohort", value: data.cohort ?? CURRENT_COHORT },
       { key: "status", value: "pending" },
       { key: "points", value: data.points },
@@ -87,8 +92,8 @@ export async function createEndorsement(
     contentType: "application/json",
     attributes: attrs([
       { key: "type", value: "endorsement" },
-      { key: "fromWallet", value: fromWallet },
-      { key: "toWallet", value: data.toWallet },
+      { key: "fromWallet", value: addr(fromWallet) },
+      { key: "toWallet", value: addr(data.toWallet) },
       { key: "skill", value: data.skill },
       { key: "strength", value: data.strength },
       { key: "cohort", value: data.cohort ?? CURRENT_COHORT },
@@ -117,7 +122,7 @@ export async function createStreak(
     attributes: attrs([
       { key: "type", value: "streak" },
       { key: "streakType", value: streakType },
-      { key: "memberWallet", value: walletAddress },
+      { key: "memberWallet", value: addr(walletAddress) },
       { key: "currentCount", value: 1 },
       { key: "bestCount", value: 1 },
       { key: "lastCheckinAt", value: now },
@@ -185,8 +190,8 @@ export async function createValidationRecord(
     attributes: attrs([
       { key: "type", value: "validation" },
       { key: "contributionKey", value: data.contributionKey },
-      { key: "validatorWallet", value: validatorWallet },
-      { key: "contributorWallet", value: data.contributorWallet },
+      { key: "validatorWallet", value: addr(validatorWallet) },
+      { key: "contributorWallet", value: addr(data.contributorWallet) },
       { key: "verdict", value: data.verdict },
       { key: "createdAt", value: now },
     ]),
@@ -211,7 +216,7 @@ export async function createPassport(
     contentType: "application/json",
     attributes: attrs([
       { key: "type", value: "passport" },
-      { key: "memberWallet", value: memberWallet },
+      { key: "memberWallet", value: addr(memberWallet) },
       { key: "totalPoints", value: data.totalPoints },
       { key: "topPillar", value: data.topPillar },
       { key: "rank", value: data.rank },
@@ -242,7 +247,7 @@ export async function createBounty(
       { key: "pillar", value: data.pillar },
       { key: "status", value: "open" },
       { key: "rewardUSD", value: data.rewardUSD },
-      { key: "postedBy", value: posterWallet },
+      { key: "postedBy", value: addr(posterWallet) },
       { key: "deadline", value: data.deadline },
       { key: "createdAt", value: now },
       { key: "cohort", value: data.cohort ?? CURRENT_COHORT },

@@ -23,7 +23,7 @@ export default function BountiesPage() {
   useEffect(() => {
     getOpenBounties({ cohort: CURRENT_COHORT })
       .then((b) => setBounties(b as any[]))
-      .catch(() => {})
+      .catch((err) => console.error("[Bounties] query failed:", err))
       .finally(() => setLoading(false));
   }, []);
 

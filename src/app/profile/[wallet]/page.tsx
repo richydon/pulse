@@ -65,6 +65,10 @@ export default function ProfilePage(props: { params: Promise<{ wallet: string }>
   const contribAttrs = contributions.map(attrs);
   const pillarBreakdown = aggregatePointsByPillar(contribAttrs);
   const total = totalPoints(contribAttrs);
+  const pendingCount = contribAttrs.filter((a) => a.status === "pending").length;
+  const pendingPoints = contribAttrs
+    .filter((a) => a.status === "pending")
+    .reduce((s: number, a: any) => s + (a.points ?? 0), 0);
 
   const radarData = [
     { subject: "Learn", value: pillarBreakdown.learn },
@@ -127,7 +131,10 @@ export default function ProfilePage(props: { params: Promise<{ wallet: string }>
             </div>
             <div className="text-right shrink-0">
               <p className="text-3xl font-black text-[#111827]">{total.toLocaleString()}</p>
-              <p className="text-xs text-[#9CA3AF]">total points</p>
+              <p className="text-xs text-[#9CA3AF]">validated points</p>
+              {pendingCount > 0 && (
+                <p className="text-xs text-[#F59E0B] mt-0.5">+{pendingPoints} pending</p>
+              )}
               <a
                 href={`${BRAGA_EXPLORER_URL}`}
                 target="_blank"
@@ -171,6 +178,11 @@ export default function ProfilePage(props: { params: Promise<{ wallet: string }>
                   <Radar dataKey="value" stroke="#2563EB" fill="#2563EB" fillOpacity={0.15} />
                 </RadarChart>
               </ResponsiveContainer>
+            ) : contributions.length > 0 ? (
+              <div className="flex flex-col items-center py-6 text-center gap-1">
+                <div className="text-sm text-[#F59E0B] font-medium">⏳ {contributions.length} pending validation</div>
+                <div className="text-xs text-[#9CA3AF]">Shape unlocks after peer validation</div>
+              </div>
             ) : (
               <div className="text-sm text-[#9CA3AF] py-10">No contributions yet</div>
             )}
@@ -235,7 +247,7 @@ export default function ProfilePage(props: { params: Promise<{ wallet: string }>
         <div className="mb-6">
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-base font-semibold text-[#111827]">
-              Contributions ({validatedContribs.length} validated)
+              Contributions ({validatedContribs.length} validated{pendingCount > 0 ? `, ${pendingCount} pending` : ""})
             </h2>
             <div className="flex gap-1">
               {["all", "learn", "burn", "earn", "fun"].map((f) => (
@@ -257,7 +269,7 @@ export default function ProfilePage(props: { params: Promise<{ wallet: string }>
           {loading ? (
             <div className="text-sm text-[#9CA3AF] py-8 text-center">Loading contributions...</div>
           ) : filteredContribs.length === 0 ? (
-            <EmptyState title="No contributions yet" description="Contributions will appear here once logged and validated." />
+            <EmptyState title="No contributions yet" description="Log your first contribution to start building your on-chain reputation." />
           ) : (
             <div className="space-y-3">
               {filteredContribs.map((c) => {

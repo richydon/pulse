@@ -2,6 +2,9 @@ import { eq, gte, lte, and } from "@arkiv-network/sdk/query";
 import { getPublicClient } from "./client";
 import { PROJECT_ATTRIBUTE, CURRENT_COHORT } from "./constants";
 
+/** Normalise wallet address to lowercase so eq() comparisons always match. */
+const lc = (a: string) => a.toLowerCase();
+
 function base() {
   return getPublicClient().buildQuery().where([
     eq(PROJECT_ATTRIBUTE.key, PROJECT_ATTRIBUTE.value),
@@ -21,7 +24,7 @@ export async function getContributionsByWallet(
 ) {
   let q = base().where([
     eq("type", "contribution"),
-    eq("contributorWallet", wallet),
+    eq("contributorWallet", lc(wallet)),
   ]);
   if (opts?.pillar) q = q.where(eq("pillar", opts.pillar));
   if (opts?.status) q = q.where(eq("status", opts.status));
@@ -39,7 +42,7 @@ export async function getContributionsByWallet(
 
 export async function getEndorsementsForWallet(wallet: string) {
   const result = await base()
-    .where([eq("type", "endorsement"), eq("toWallet", wallet)])
+    .where([eq("type", "endorsement"), eq("toWallet", lc(wallet))])
     .orderBy("createdAt", "number", "desc")
     .withAttributes(true)
     .withPayload(true)
@@ -51,7 +54,7 @@ export async function getEndorsementsForWallet(wallet: string) {
 
 export async function getEndorsementsGivenByWallet(wallet: string) {
   const result = await base()
-    .where([eq("type", "endorsement"), eq("fromWallet", wallet)])
+    .where([eq("type", "endorsement"), eq("fromWallet", lc(wallet))])
     .orderBy("createdAt", "number", "desc")
     .withAttributes(true)
     .withPayload(true)
@@ -64,7 +67,7 @@ export async function getActiveStreak(wallet: string) {
   const result = await base()
     .where([
       eq("type", "streak"),
-      eq("memberWallet", wallet),
+      eq("memberWallet", lc(wallet)),
       eq("isActive", 1),
     ])
     .withAttributes(true)
@@ -77,7 +80,7 @@ export async function getActiveStreak(wallet: string) {
 
 export async function getAllStreaksForWallet(wallet: string) {
   const result = await base()
-    .where([eq("type", "streak"), eq("memberWallet", wallet)])
+    .where([eq("type", "streak"), eq("memberWallet", lc(wallet))])
     .withAttributes(true)
     .withPayload(true)
     .limit(10)
@@ -87,7 +90,7 @@ export async function getAllStreaksForWallet(wallet: string) {
 
 export async function getPassport(wallet: string) {
   const result = await base()
-    .where([eq("type", "passport"), eq("memberWallet", wallet)])
+    .where([eq("type", "passport"), eq("memberWallet", lc(wallet))])
     .orderBy("generatedAt", "number", "desc")
     .withAttributes(true)
     .withPayload(true)

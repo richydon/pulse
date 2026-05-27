@@ -65,7 +65,7 @@ function LeaderboardContent() {
         setEntries(aggregateLeaderboard((raw as any[]).map(attrs)));
         setStats(s as Record<string, number>);
       })
-      .catch(() => {})
+      .catch((err) => console.error("[Leaderboard] query failed:", err))
       .finally(() => setLoading(false));
   }, [activePillar, timeRange]);
 
@@ -147,7 +147,10 @@ function LeaderboardContent() {
         {loading ? (
           <p className="text-sm text-[#9CA3AF] py-8 text-center">Loading...</p>
         ) : entries.length === 0 ? (
-          <p className="text-sm text-[#9CA3AF] py-8 text-center">No entries yet.</p>
+          <div className="py-10 text-center space-y-2">
+            <p className="text-sm font-medium text-[#6B7280]">No validated contributions yet.</p>
+            <p className="text-xs text-[#9CA3AF]">Contributions need 2 peer validations to appear here. Visit <a href="/contribute/validate" className="text-[#2563EB] hover:underline">Validate</a> to review pending submissions.</p>
+          </div>
         ) : (
           <div className="space-y-2">
             {entries.map((entry, i) => {
