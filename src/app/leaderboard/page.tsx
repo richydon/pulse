@@ -1,13 +1,15 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { AppShell } from "@/components/layout/AppShell";
+import { Avatar } from "@/components/ui/Avatar";
 import { PillarBadge } from "@/components/ui/PillarBadge";
 import { getLeaderboard, getAllPulseEntities } from "@/lib/arkiv/queries";
 import { aggregateLeaderboard } from "@/lib/points/calculator";
 import { CURRENT_COHORT, PILLAR_COLORS } from "@/lib/arkiv/constants";
-import { truncateHex, walletToColor, getInitials } from "@/lib/utils/format";
+import { truncateHex } from "@/lib/utils/format";
 import { usePulseAuth } from "@/hooks/usePulseAuth";
 import { Trophy, GraduationCap, Flame, Bitcoin, PartyPopper, Zap } from "lucide-react";
 
@@ -21,13 +23,36 @@ const TIME_RANGES = [
   { label: "This Week", value: 7 },
 ];
 
-export default function LeaderboardPage() {
+const PILLARS = [
+  { key: "overall", label: "Overall", icon: Trophy },
+  { key: "learn",   label: "Learn",   icon: GraduationCap },
+  { key: "burn",    label: "Burn",    icon: Flame },
+  { key: "earn",    label: "Earn",    icon: Bitcoin },
+  { key: "fun",     label: "Fun",     icon: PartyPopper },
+];
+
+function LeaderboardContent() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
   const { address } = usePulseAuth();
+
   const [entries, setEntries] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activePillar, setActivePillar] = useState("overall");
+  const [activePillar, setActivePillar] = useState(
+    () => searchParams.get("pillar") ?? "overall"
+  );
   const [timeRange, setTimeRange] = useState(0);
   const [stats, setStats] = useState<Record<string, number>>({});
+
+  // Sync pillar state when URL changes (back/forward navigation)
+  useEffect(() => {
+    const pillarFromUrl = searchParams.get("pillar") ?? "overall";
+    if (pillarFromUrl !== activePillar) {
+      setActivePillar(pillarFromUrl);
+      setLoading(true);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
 
   useEffect(() => {
     const fromTs = timeRange > 0 ? Date.now() - timeRange * 86400000 : undefined;
@@ -46,13 +71,19 @@ export default function LeaderboardPage() {
 
   const totalPoints = entries.reduce((s, e) => s + e.total, 0);
 
+  const selectPillar = (key: string) => {
+    setActivePillar(key);
+    setLoading(true);
+    router.push(key === "overall" ? "/leaderboard" : `/leaderboard?pillar=${key}`);
+  };
+
   return (
     <AppShell>
       <div className="max-w-3xl mx-auto px-6 py-8">
         {/* Header */}
         <div className="flex items-start justify-between mb-6">
           <div>
-            <h1 className="text-3xl font-bold text-[#111827]" style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>
+            <h1 className="text-3xl font-black text-[#111827] tracking-tight">
               Leaderboard
             </h1>
             <p className="text-sm text-[#6B7280] mt-1">Community rankings for {CURRENT_COHORT}</p>
@@ -62,13 +93,13 @@ export default function LeaderboardPage() {
           </div>
         </div>
 
-        {/* Live stats */}
-        <div className="grid grid-cols-4 gap-3 mb-6">
+        {/* Live stats — 2×2 on mobile, 4-col on md+ */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
           {[
-            { icon: Zap, label: "Contributions", value: stats.contribution ?? 0, color: "#2563EB" },
-            { icon: GraduationCap, label: "Members", value: entries.length, color: "#3B82F6" },
-            { icon: Flame, label: "Active Streaks", value: stats.streak ?? 0, color: "#F97316" },
-            { icon: Trophy, label: "Total Points", value: totalPoints.toLocaleString(), color: "#F59E0B" },
+            { icon: Zap,          label: "Contributions",  value: stats.contribution ?? 0,        color: "#2563EB" },
+            { icon: GraduationCap,label: "Members",        value: entries.length,                  color: "#3B82F6" },
+            { icon: Flame,        label: "Active Streaks", value: stats.streak ?? 0,              color: "#F97316" },
+            { icon: Trophy,       label: "Total Points",   value: totalPoints.toLocaleString(),   color: "#F59E0B" },
           ].map((s) => {
             const Icon = s.icon;
             return (
@@ -83,16 +114,10 @@ export default function LeaderboardPage() {
 
         {/* Filters */}
         <div className="flex flex-wrap gap-2 mb-4">
-          {[
-            { key: "overall", label: "Overall", icon: Trophy },
-            { key: "learn", label: "Learn", icon: GraduationCap },
-            { key: "burn", label: "Burn", icon: Flame },
-            { key: "earn", label: "Earn", icon: Bitcoin },
-            { key: "fun", label: "Fun", icon: PartyPopper },
-          ].map(({ key, label, icon: Icon }) => (
+          {PILLARS.map(({ key, label, icon: Icon }) => (
             <button
               key={key}
-              onClick={() => { setActivePillar(key); setLoading(true); }}
+              onClick={() => selectPillar(key)}
               className={`flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-full border transition-colors ${
                 activePillar === key
                   ? "bg-[#111827] text-white border-[#111827]"
@@ -139,12 +164,7 @@ export default function LeaderboardPage() {
                   <div className="w-8 text-center text-sm">
                     {medal ?? <span className="text-[#9CA3AF] font-mono">{i + 1}</span>}
                   </div>
-                  <div
-                    className="w-9 h-9 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0"
-                    style={{ backgroundColor: walletToColor(entry.wallet) }}
-                  >
-                    {getInitials(truncateHex(entry.wallet, 2, 0))}
-                  </div>
+                  <Avatar wallet={entry.wallet} size={36} />
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-[#111827] font-mono truncate">
                       {truncateHex(entry.wallet, 8, 6)}
@@ -177,5 +197,19 @@ export default function LeaderboardPage() {
         )}
       </div>
     </AppShell>
+  );
+}
+
+export default function LeaderboardPage() {
+  return (
+    <Suspense
+      fallback={
+        <AppShell>
+          <div className="py-8 text-center text-sm text-[#9CA3AF]">Loading...</div>
+        </AppShell>
+      }
+    >
+      <LeaderboardContent />
+    </Suspense>
   );
 }

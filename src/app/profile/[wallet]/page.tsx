@@ -15,10 +15,9 @@ import {
   truncateHex,
   formatDate,
   formatRelativeDate,
-  walletToColor,
-  getInitials,
   parseEntityPayload,
 } from "@/lib/utils/format";
+import { Avatar } from "@/components/ui/Avatar";
 import { aggregatePointsByPillar, totalPoints } from "@/lib/points/calculator";
 import { BRAGA_EXPLORER_URL, PILLAR_COLORS, PILLAR_SOFT_COLORS, CURRENT_COHORT } from "@/lib/arkiv/constants";
 import {
@@ -104,12 +103,7 @@ export default function ProfilePage(props: { params: Promise<{ wallet: string }>
         {/* Header */}
         <div className="card-ns mb-6">
           <div className="flex items-start gap-4">
-            <div
-              className="w-14 h-14 rounded-full flex items-center justify-center text-white font-bold text-lg shrink-0"
-              style={{ backgroundColor: walletToColor(wallet) }}
-            >
-              {wallet ? getInitials(truncateHex(wallet, 4, 0)) : "?"}
-            </div>
+            <Avatar wallet={wallet} size={56} />
             <div className="flex-1 min-w-0">
               <h1 className="text-xl font-bold text-[#111827]">
                 {passportPayload.displayName ?? truncateHex(wallet)}
@@ -341,12 +335,7 @@ export default function ProfilePage(props: { params: Promise<{ wallet: string }>
                 return (
                   <div key={e.key} className="card-ns">
                     <div className="flex items-start gap-3">
-                      <div
-                        className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0"
-                        style={{ backgroundColor: walletToColor(a.fromWallet ?? "") }}
-                      >
-                        {getInitials(truncateHex(a.fromWallet ?? "", 2, 0))}
-                      </div>
+                      <Avatar wallet={a.fromWallet ?? ""} size={32} />
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-1">
                           <span className="text-sm font-medium text-[#111827]">{a.skill}</span>

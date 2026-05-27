@@ -6,7 +6,8 @@ import { usePulseAuth } from "@/hooks/usePulseAuth";
 import { createEndorsement } from "@/lib/arkiv/entities";
 import { getEndorsementsGivenByWallet } from "@/lib/arkiv/queries";
 import { ALL_SKILLS } from "@/lib/arkiv/constants";
-import { truncateHex, walletToColor, getInitials } from "@/lib/utils/format";
+import { truncateHex } from "@/lib/utils/format";
+import { Avatar } from "@/components/ui/Avatar";
 import { Star, CheckCircle, Lock } from "lucide-react";
 
 function attrs(e: any) {
@@ -92,16 +93,11 @@ export default function EndorsePage(props: { params: Promise<{ wallet: string }>
   return (
     <AppShell>
       <div className="max-w-xl mx-auto px-6 py-8">
-        <h1 className="text-2xl font-bold text-[#111827] mb-1" style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>
+        <h1 className="text-2xl font-black text-[#111827] mb-1 tracking-tight">
           Endorse a Peer
         </h1>
         <div className="flex items-center gap-3 mb-6 card-ns">
-          <div
-            className="w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-bold shrink-0"
-            style={{ backgroundColor: walletToColor(toWallet) }}
-          >
-            {getInitials(truncateHex(toWallet, 2, 0))}
-          </div>
+          <Avatar wallet={toWallet} size={40} />
           <div>
             <p className="text-sm font-medium text-[#111827]">Endorsing</p>
             <p className="font-mono text-xs text-[#0D9488]">{truncateHex(toWallet, 10, 8)}</p>

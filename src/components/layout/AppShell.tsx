@@ -8,8 +8,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen flex flex-col">
       <TopBar />
-      <div className="flex flex-1 overflow-hidden">
-        <main className="flex-1 min-w-0 overflow-y-auto pb-16 md:pb-0">
+      <div className="flex flex-1 pt-14">
+        <main className="flex-1 min-w-0 pb-16 md:pb-0">
           {children}
         </main>
         <Sidebar />
