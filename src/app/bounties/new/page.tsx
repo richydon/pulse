@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { AppShell } from "@/components/layout/AppShell";
+import { ImageUpload } from "@/components/ui/ImageUpload";
 import { usePulseAuth } from "@/hooks/usePulseAuth";
 import { createBounty } from "@/lib/arkiv/entities";
 import { CURRENT_COHORT, type Pillar } from "@/lib/arkiv/constants";
@@ -13,6 +14,7 @@ export default function NewBountyPage() {
   const { authenticated, address, login, getWalletClient } = usePulseAuth();
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
+  const [imageUrl, setImageUrl] = useState("");
   const [rewardUSD, setRewardUSD] = useState("");
   const [rewardToken, setRewardToken] = useState("USDC");
   const [pillar, setPillar] = useState<Pillar>("earn");
@@ -39,6 +41,7 @@ export default function NewBountyPage() {
           requirements: [],
           rewardToken,
           rewardAmount: parseFloat(rewardUSD),
+          ...(imageUrl ? { imageUrl } : {}),
         },
       });
       setDone(true);
@@ -76,6 +79,14 @@ export default function NewBountyPage() {
           </div>
         ) : (
           <div className="space-y-4">
+            {/* Cover image upload */}
+            <div>
+              <label className="block text-sm font-medium text-[#111827] mb-1">
+                Cover Image <span className="text-[#9CA3AF] font-normal">(optional)</span>
+              </label>
+              <ImageUpload value={imageUrl} onChange={setImageUrl} />
+            </div>
+
             <div>
               <label className="block text-sm font-medium text-[#111827] mb-1">Title</label>
               <input
@@ -85,6 +96,7 @@ export default function NewBountyPage() {
                 onChange={(e) => setTitle(e.target.value)}
               />
             </div>
+
             <div>
               <label className="block text-sm font-medium text-[#111827] mb-1">Description</label>
               <textarea
@@ -95,6 +107,7 @@ export default function NewBountyPage() {
                 onChange={(e) => setDescription(e.target.value)}
               />
             </div>
+
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="block text-sm font-medium text-[#111827] mb-1">Reward (USD)</label>
@@ -119,6 +132,7 @@ export default function NewBountyPage() {
                 </select>
               </div>
             </div>
+
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="block text-sm font-medium text-[#111827] mb-1">Pillar</label>
@@ -128,7 +142,9 @@ export default function NewBountyPage() {
                   onChange={(e) => setPillar(e.target.value as Pillar)}
                 >
                   {["learn", "burn", "earn", "fun"].map((p) => (
-                    <option key={p} value={p} className="capitalize">{p.charAt(0).toUpperCase() + p.slice(1)}</option>
+                    <option key={p} value={p} className="capitalize">
+                      {p.charAt(0).toUpperCase() + p.slice(1)}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -145,6 +161,7 @@ export default function NewBountyPage() {
                 </select>
               </div>
             </div>
+
             {error && <p className="text-sm text-[#EF4444]">{error}</p>}
             <button
               onClick={handleSubmit}

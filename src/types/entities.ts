@@ -74,6 +74,7 @@ export interface BountyPayload {
   requirements: string[];
   rewardToken: string;
   rewardAmount: number;
+  imageUrl?: string;
   winnerWallet?: string;
   winnerTxHash?: string;
   submissionCount?: number;

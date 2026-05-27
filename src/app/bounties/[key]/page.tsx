@@ -104,10 +104,23 @@ export default function BountyDetailPage(props: { params: Promise<{ key: string 
   const payload = parseEntityPayload(bounty);
   const isPoster = !!address && a.postedBy?.toLowerCase() === address.toLowerCase();
   const isOpen = a.status === "open";
+  const imageUrl = (payload as any).imageUrl as string | undefined;
 
   return (
     <AppShell>
       <div className="max-w-xl mx-auto px-6 py-8">
+        {/* Hero image */}
+        {imageUrl && (
+          <div className="rounded-xl overflow-hidden mb-5 bg-[#F3F4F6]">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={imageUrl}
+              alt={(payload as any).title ?? "Bounty"}
+              className="w-full h-56 object-cover"
+            />
+          </div>
+        )}
+
         {/* Header */}
         <div className="flex items-center gap-2 mb-4">
           {a.pillar && <PillarBadge pillar={a.pillar} />}
