@@ -1,18 +1,27 @@
 # Pulse — On-Chain Reputation for Network School
+<img width="1830" height="824" alt="20260527-1840-04 6663261" src="https://github.com/user-attachments/assets/f25b8752-38fd-4047-968a-a810d9060ac2" />
+(Dashboard)
+
 
 **ETHns × Arkiv Challenge 2026 submission**
 
 Pulse is a Web3 reputation system where every contribution a Network School member makes — a workshop taught, a gym streak, a bounty won, a peer endorsement — becomes a tamper-proof entity on the Arkiv Braga testnet, owned by the contributor's wallet. A peer validation system ensures quality, and an AI agent synthesizes everything into a portable, independently verifiable Reputation Passport.
 
-**Live demo:** https://pulse-ns.vercel.app
-**Demo profile:** https://pulse-ns.vercel.app/profile/0x742d35Cc6634C0532925a3b844Bc454e4438f44e
-**Verify on-chain:** https://pulse-ns.vercel.app/verify
+**Live demo:** https://pulse-tau-two.vercel.app
+**Demo profile:** https://pulse-tau-two.vercel.app/profile/0x742d35Cc6634C0532925a3b844Bc454e4438f44e
+**Verify on-chain:** https://pulse-tau-two.vercel.app/verify
 
 ---
 
 ## The Problem
 
 Network School members do a lot — they teach workshops, ship projects, hit gym streaks, win bounties, mentor peers — but none of it is portable. When a member leaves, their reputation lives in Notion docs, Telegram messages, and people's memories. There is no credible, verifiable record that travels with them.
+
+
+<img width="1828" height="822" alt="20260527-1844-50 0236459" src="https://github.com/user-attachments/assets/cb2da7c1-24d8-4192-a4f9-d87a69e7baa8" />
+(Log a contribution)
+
+
 
 ## The Solution
 
@@ -95,7 +104,8 @@ const result = await client
 ```
 
 ---
-
+<img width="1830" height="800" alt="20260527-1848-26 9492199" src="https://github.com/user-attachments/assets/d90506f7-b4b0-42a5-be18-2e58332cacb6" />
+(profile page)
 ## Quick Start
 
 ### 1. Clone and install
@@ -159,6 +169,9 @@ Bounty images are uploaded directly from the browser to Cloudinary — no backen
 If these vars are not set, the image upload field shows a configuration error and the rest of the form continues to work normally.
 
 ---
+<img width="1834" height="816" alt="20260527-1858-07 8179348" src="https://github.com/user-attachments/assets/3290cdaf-4446-4a4e-85ac-044903270a83" />
+(bounty page)
+
 
 ## Seeding Demo Data
 
