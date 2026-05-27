@@ -13,7 +13,22 @@ export function getPublicClient() {
 }
 
 export async function getPrivyWalletClient(wallet: ConnectedWallet) {
-  await wallet.switchChain(BRAGA_CHAIN_ID);
+  // Ensure the embedded wallet is on the Arkiv Braga chain.
+  // Wrap in try/catch — some Privy wallet types reject switchChain when
+  // they are already on the correct chain or don't support the method.
+  try {
+    await wallet.switchChain(BRAGA_CHAIN_ID);
+  } catch {
+    // Proceed: Privy is configured with braga as defaultChain so the
+    // provider should already be pointing at the right network.
+  }
   const provider = await wallet.getEthereumProvider();
-  return createWalletClient({ chain: braga, transport: custom(provider) });
+
+  // account MUST be supplied — the Arkiv SDK checks `client.account` before
+  // every sendTransaction call and throws "Account required" if it is absent.
+  return createWalletClient({
+    chain: braga,
+    transport: custom(provider),
+    account: wallet.address as `0x${string}`,
+  });
 }
