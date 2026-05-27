@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { motion } from "framer-motion";
 import { TopBar } from "@/components/layout/TopBar";
 import { DEMO_WALLET, PILLAR_COLORS, PILLAR_SOFT_COLORS } from "@/lib/arkiv/constants";
 import { getAllPulseEntities } from "@/lib/arkiv/queries";
@@ -66,23 +67,41 @@ export default function LandingPage() {
 
       {/* Hero */}
       <section className="max-w-5xl mx-auto px-6 pt-20 pb-16 text-center">
-        <div className="inline-flex items-center gap-1.5 bg-[#F0FDFA] text-[#0D9488] text-xs font-medium px-3 py-1 rounded-full mb-6 border border-[#CCFBF1]">
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, ease: [0.25, 0.1, 0.25, 1] }}
+          className="inline-flex items-center gap-1.5 bg-[#F0FDFA] text-[#0D9488] text-xs font-medium px-3 py-1 rounded-full mb-6 border border-[#CCFBF1]"
+        >
           <Shield className="w-3.5 h-3.5" />
           Built on Arkiv Braga Testnet
-        </div>
-        <h1
+        </motion.div>
+        <motion.h1
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.1, ease: [0.25, 0.1, 0.25, 1] }}
           className="text-5xl md:text-6xl font-bold text-[#111827] tracking-tight leading-tight mb-5"
           style={{ fontFamily: "'Playfair Display', Georgia, serif" }}
         >
           Your reputation,<br />earned in public.<br />
           <span className="text-[#2563EB]">Owned by you.</span>
-        </h1>
-        <p className="text-lg text-[#6B7280] max-w-2xl mx-auto mb-8">
+        </motion.h1>
+        <motion.p
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.25, ease: [0.25, 0.1, 0.25, 1] }}
+          className="text-lg text-[#6B7280] max-w-2xl mx-auto mb-8"
+        >
           Pulse turns every contribution at Network School into a tamper-proof, wallet-owned
           record on Arkiv. Your reputation travels with you — across every cohort, every city,
           every community.
-        </p>
-        <div className="flex flex-wrap gap-3 justify-center">
+        </motion.p>
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.4, ease: [0.25, 0.1, 0.25, 1] }}
+          className="flex flex-wrap gap-3 justify-center"
+        >
           <Link href={`/profile/${DEMO_WALLET}`} className="btn-ns text-sm px-5 py-2.5 flex items-center gap-2">
             View Demo Profile
             <ArrowRight className="w-4 h-4" />
@@ -90,7 +109,7 @@ export default function LandingPage() {
           <Link href="/contribute/new" className="btn-ns-outline text-sm px-5 py-2.5">
             Log a Contribution
           </Link>
-        </div>
+        </motion.div>
       </section>
 
       {/* Live Stats */}
@@ -146,12 +165,19 @@ export default function LandingPage() {
             How it works
           </h2>
           <div className="grid md:grid-cols-4 gap-6">
-            {steps.map((s) => (
-              <div key={s.n} className="text-center">
+            {steps.map((s, i) => (
+              <motion.div
+                key={s.n}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.4, delay: i * 0.1 }}
+                className="text-center"
+              >
                 <div className="text-4xl font-black text-[#E5E7EB] mb-3">{s.n}</div>
                 <p className="text-sm font-semibold text-[#111827] mb-1">{s.label}</p>
                 <p className="text-xs text-[#6B7280]">{s.desc}</p>
-              </div>
+              </motion.div>
             ))}
           </div>
         </div>
@@ -166,12 +192,20 @@ export default function LandingPage() {
           The Four Pillars
         </h2>
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {pillars.map((p) => {
+          {pillars.map((p, i) => {
             const Icon = p.icon;
             const color = PILLAR_COLORS[p.key as keyof typeof PILLAR_COLORS];
             const bg = PILLAR_SOFT_COLORS[p.key as keyof typeof PILLAR_SOFT_COLORS];
             return (
-              <div key={p.key} className="card-ns hover:shadow-sm transition-shadow">
+              <motion.div
+                key={p.key}
+                initial={{ opacity: 0, y: 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.4, delay: i * 0.08 }}
+                whileHover={{ y: -4, boxShadow: "0 8px 24px rgba(0,0,0,0.08)" }}
+                className="card-ns cursor-default"
+              >
                 <div
                   className="w-10 h-10 rounded-xl flex items-center justify-center mb-3"
                   style={{ backgroundColor: bg }}
@@ -192,7 +226,7 @@ export default function LandingPage() {
                     </li>
                   ))}
                 </ul>
-              </div>
+              </motion.div>
             );
           })}
         </div>

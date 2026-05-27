@@ -94,13 +94,19 @@ body {
   font-size: 0.875rem;
   font-weight: 500;
   cursor: pointer;
-  transition: background-color 0.15s ease;
+  transition: background-color 0.15s ease, transform 0.1s ease, box-shadow 0.15s ease;
   border: none;
   white-space: nowrap;
 }
 
 .btn-ns:hover {
   background-color: #1F2937;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.btn-ns:active {
+  transform: scale(0.96);
+  box-shadow: none;
 }
 
 .btn-ns-outline {
@@ -115,13 +121,18 @@ body {
   font-size: 0.875rem;
   font-weight: 500;
   cursor: pointer;
-  transition: background-color 0.15s ease;
+  transition: background-color 0.15s ease, transform 0.1s ease;
   border: 1px solid #E5E7EB;
   white-space: nowrap;
 }
 
 .btn-ns-outline:hover {
   background-color: #F8F9FA;
+  border-color: #D1D5DB;
+}
+
+.btn-ns-outline:active {
+  transform: scale(0.96);
 }
 
 /* NS-style card */
@@ -130,6 +141,12 @@ body {
   border: 1px solid #E5E7EB;
   border-radius: 0.75rem;
   padding: 1.25rem;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.card-ns-hover:hover {
+  box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+  transform: translateY(-1px);
 }
 
 /* Mono text for entity keys / wallet addresses */

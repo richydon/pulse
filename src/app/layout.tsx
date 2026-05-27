@@ -16,9 +16,15 @@ export const metadata: Metadata = {
   description:
     "Pulse turns every contribution at Network School into a tamper-proof, wallet-owned record on Arkiv. Your reputation travels with you forever.",
   openGraph: {
+    title: "Pulse — Your reputation, earned in public. Owned by you.",
+    description: "Pulse turns every contribution at Network School into a tamper-proof, wallet-owned record on Arkiv.",
+    siteName: "Pulse",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
     title: "Pulse",
     description: "Your reputation, earned in public. Owned by you.",
-    images: ["/og-image.png"],
   },
 };
 

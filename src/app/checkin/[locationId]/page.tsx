@@ -9,6 +9,7 @@ import { NS_LOCATIONS, type LocationId } from "@/lib/arkiv/constants";
 import { isStreakBroken, hasCheckedInToday, checkMilestone } from "@/lib/streak/milestones";
 import { parseEntityPayload } from "@/lib/utils/format";
 import { CheckCircle, Flame, MapPin, Lock } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
 function attrs(e: any) {
   return (e.attributes ?? []).reduce((m: any, a: any) => ({ ...m, [a.key]: a.value }), {});
@@ -137,24 +138,54 @@ export default function LocationCheckinPage(props: { params: Promise<{ locationI
           </>
         )}
 
-        {done && (
-          <div className="card-ns text-center">
-            <CheckCircle className="w-10 h-10 text-[#10B981] mx-auto mb-3" />
-            <p className="font-bold text-[#111827] text-lg mb-1">Checked in!</p>
-            <div className="flex items-center justify-center gap-2 mb-2">
-              <Flame className="w-5 h-5 text-[#F97316]" />
-              <span className="text-2xl font-black text-[#F97316]">{newCount}</span>
-              <span className="text-sm text-[#6B7280]">day streak</span>
-            </div>
-            {milestone && (
-              <div className="rounded-lg bg-[#FFFBEB] border border-[#FDE68A] p-3 mt-3">
-                <p className="text-sm font-bold text-[#92400E]">🎉 Milestone reached! {newCount} days</p>
-                <p className="text-xs text-[#92400E]">Bonus contribution created</p>
+        <AnimatePresence>
+          {done && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ type: "spring", stiffness: 300, damping: 24 }}
+              className="card-ns text-center"
+            >
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ type: "spring", stiffness: 400, damping: 16, delay: 0.1 }}
+              >
+                <CheckCircle className="w-10 h-10 text-[#10B981] mx-auto mb-3" />
+              </motion.div>
+              <p className="font-bold text-[#111827] text-lg mb-1">Checked in!</p>
+              <div className="flex items-center justify-center gap-2 mb-2">
+                <motion.div
+                  animate={{ rotate: [0, -15, 15, -10, 10, 0], scale: [1, 1.2, 1.2, 1.1, 1.1, 1] }}
+                  transition={{ duration: 0.6, delay: 0.3 }}
+                >
+                  <Flame className="w-5 h-5 text-[#F97316]" />
+                </motion.div>
+                <motion.span
+                  initial={{ opacity: 0, x: -8 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.4 }}
+                  className="text-2xl font-black text-[#F97316]"
+                >
+                  {newCount}
+                </motion.span>
+                <span className="text-sm text-[#6B7280]">day streak</span>
               </div>
-            )}
-            <p className="text-xs text-[#9CA3AF] mt-3">Check-in recorded on Arkiv Braga</p>
-          </div>
-        )}
+              {milestone && (
+                <motion.div
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.6 }}
+                  className="rounded-lg bg-[#FFFBEB] border border-[#FDE68A] p-3 mt-3"
+                >
+                  <p className="text-sm font-bold text-[#92400E]">Milestone reached! {newCount} days</p>
+                  <p className="text-xs text-[#92400E]">Bonus contribution created</p>
+                </motion.div>
+              )}
+              <p className="text-xs text-[#9CA3AF] mt-3">Check-in recorded on Arkiv Braga</p>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </AppShell>
   );
